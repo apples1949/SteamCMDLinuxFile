@@ -10,7 +10,7 @@ cd ./steamcmd
 ```
 wget https://raw.kkgithub.com/apples1949/SteamCmdLinuxFile/main/build/.zip
 ```
-别直接复制↑仅参考  
+别直接复制↑↓仅参考  
 ```
 tar -xzf 
 ```
