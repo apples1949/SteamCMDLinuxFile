@@ -1,7 +1,7 @@
 name: SteamCMD Upload
 
 on:
-  workflow_dispatch:  # 仅保留手动触发
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -39,13 +39,12 @@ jobs:
 
     - name: Create Package
       run: |
-        TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-        tar -czf "$GITHUB_WORKSPACE/build/steamcmd_$TIMESTAMP.tar.gz" \
+        tar -czf "$GITHUB_WORKSPACE/build/steamcmd_linux.tar.gz" \
           --exclude='siteserverui' \
           -C "$HOME/steamcmd_build" .  
         
         ls -lh "$GITHUB_WORKSPACE/build"
-        echo "Package path: $GITHUB_WORKSPACE/build/steamcmd_$TIMESTAMP.tar.gz"
+        echo "Package path: $GITHUB_WORKSPACE/build/steamcmd_linux.tar.gz"
 
     - name: Commit & Push
       run: |
