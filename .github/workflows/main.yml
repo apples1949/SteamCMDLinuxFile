@@ -1,0 +1,70 @@
+name: SteamCMD Upload
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'build/steamcmd_*.tar.gz'
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Setup Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y lib32gcc-s1
+
+    - name: Prepare Directories
+      run: |
+        mkdir -p "$GITHUB_WORKSPACE/build"  
+        WORKDIR="$HOME/steamcmd_build"
+        mkdir -p "$WORKDIR"
+        cd "$WORKDIR"
+        echo "Current dir: $(pwd)"
+
+    - name: Download SteamCMD
+      run: |
+        cd "$HOME/steamcmd_build"
+        wget -q https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+        tar -xzf steamcmd_linux.tar.gz
+        rm steamcmd_linux.tar.gz
+        ./steamcmd.sh +quit
+
+    - name: Create Package
+      run: |
+        TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+        tar -czf "$GITHUB_WORKSPACE/build/steamcmd_$TIMESTAMP.tar.gz" \
+          --exclude='siteserverui' \
+          -C "$HOME/steamcmd_build" .  
+        
+        ls -lh "$GITHUB_WORKSPACE/build"
+        echo "Package path: $GITHUB_WORKSPACE/build/steamcmd_$TIMESTAMP.tar.gz"
+
+    - name: Commit & Push
+      run: |
+        cd "$GITHUB_WORKSPACE"
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@users.noreply.github.com"
+
+
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+
+        if [ -n "$(git status --porcelain build/)" ]; then
+          git add build/
+          git commit -m "🤖 Auto Update SteamCMD ($(date +'%Y-%m-%d %H:%M'))"
+          git pull --rebase origin main
+          git push origin HEAD:main
+        else
+          echo "🟢 No changes to commit"
+        fi
