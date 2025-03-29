@@ -8,5 +8,5 @@ mkdir steamcmd
 cd ./steamcmd
 ```
 ```
-tar -xzf steamcmd_*-*.tar.gz
+tar -xzf 
 ```
