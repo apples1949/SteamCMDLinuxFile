@@ -39,7 +39,7 @@ jobs:
 
     - name: Create Package
       run: |
-        tar -czf "$GITHUB_WORKSPACE/build/steamcmd_linux.tar.gz" \
+        tar -czvf "$GITHUB_WORKSPACE/build/steamcmd_linux.tar.gz" \
           --exclude='siteserverui' \
           -C "$HOME/steamcmd_build" .  
         
