@@ -14,5 +14,8 @@ wget https://raw.kkgithub.com/apples1949/SteamCmdLinuxFile/main/build/steamcmd_l
 tar -xzf steamcmd_linux.tar.gz
 ```
 ```
-bash steamcmd.sh
+chmod -R 777 *
+```
+```
+./steamcmd.sh
 ```
