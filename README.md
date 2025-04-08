@@ -15,4 +15,12 @@ tar -xzf steamcmd_linux.tar.gz
 ```
 ```
 ./steamcmd.sh
+```  
+针对更新加速，单独对更新包package文件进行打包。解压在package文件夹中。记得删除旧文件  
+常用指令：  
+```
+wget https://github.com/apples1949/SteamCMDLinuxFile/raw/refs/heads/main/build/package.tar.gz
+```
+```
+tar -xzf package.tar.gz
 ```
