@@ -40,6 +40,7 @@ jobs:
         tar -xzf steamcmd_linux.tar.gz
         rm steamcmd_linux.tar.gz
         ./steamcmd.sh +quit
+        chmod -R a+r *
 
     - name: Create Package
       run: |
