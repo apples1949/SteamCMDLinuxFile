@@ -40,9 +40,12 @@ jobs:
     - name: Create Package
       run: |
         tar -czvf "$GITHUB_WORKSPACE/build/steamcmd_linux.tar.gz" \
-          --exclude='siteserverui' \
-          -C "$HOME/steamcmd_build" .  
-        
+          --exclude='linux32/steamclient.so' \
+          -C "$HOME/steamcmd_build" \
+          linux32 \
+          package \
+          steamcmd.sh
+    
         ls -lh "$GITHUB_WORKSPACE/build"
         echo "Package path: $GITHUB_WORKSPACE/build/steamcmd_linux.tar.gz"
 
