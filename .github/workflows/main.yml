@@ -54,12 +54,11 @@ jobs:
         ls -lh "$GITHUB_WORKSPACE/build"
         echo "Package path: $GITHUB_WORKSPACE/build/steamcmd_linux.tar.gz"
 
-    - name: Compress Package Folder
+    - name: Compress Package Contents  # 修改步骤名称
       run: |
         cd "$HOME/steamcmd_build"
-        tar -czvf package.tar.gz package
+        (cd package && tar -czvf ../package.tar.gz ./*)
         mv package.tar.gz "$GITHUB_WORKSPACE/build/"
-
         ls -lh "$GITHUB_WORKSPACE/build"
         echo "Package path: $GITHUB_WORKSPACE/build/package.tar.gz"
         
