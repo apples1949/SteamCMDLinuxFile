@@ -8,7 +8,7 @@ mkdir steamcmd
 cd ./steamcmd
 ```
 ```
-wget https://raw.github.com/apples1949/SteamCmdLinuxFile/main/build/steamcmd_linux.tar.gz
+wget https://raw.kkgithub.com/apples1949/SteamCMDLinuxFile/main/build/steamcmd_linux.tar.gz
 ```
 ```
 tar -xzf steamcmd_linux.tar.gz
