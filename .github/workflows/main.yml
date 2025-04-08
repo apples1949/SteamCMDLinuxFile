@@ -2,9 +2,12 @@ name: SteamCMD Upload
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'  
 
 permissions:
   contents: write
+
 
 jobs:
   package:
@@ -20,6 +23,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y lib32gcc-s1
+        sudo timedatectl set-timezone Asia/Shanghai
 
     - name: Prepare Directories
       run: |
