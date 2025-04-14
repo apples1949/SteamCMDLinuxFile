@@ -8,7 +8,7 @@ mkdir steamcmd
 cd ./steamcmd
 ```
 ```
-wget https://wget.la/https://raw.githubusercontent.com/apples1949/SteamCMDLinuxFile/main/build/steamcmd_linux.tar.gz
+wget https://raw.kkgithub.com/apples1949/SteamCMDLinuxFile/main/build/steamcmd_linux.tar.gz
 ```
 ```
 tar -xzf steamcmd_linux.tar.gz
@@ -19,7 +19,7 @@ tar -xzf steamcmd_linux.tar.gz
 针对更新加速，单独对更新包package文件进行打包。解压在package文件夹中。记得删除旧文件  
 常用指令：  
 ```
-wget https://wget.la/https://raw.githubusercontent.com/apples1949/SteamCMDLinuxFile/main/build/package.tar.gz
+wget https://raw.kkgithub.com/apples1949/SteamCMDLinuxFile/main/build/package.tar.gz
 ```
 ```
 tar -xzf package.tar.gz
