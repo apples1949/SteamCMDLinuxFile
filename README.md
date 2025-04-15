@@ -10,6 +10,10 @@ cd ./steamcmd
 ```
 wget https://raw.kkgithub.com/apples1949/SteamCMDLinuxFile/main/build/steamcmd_linux.tar.gz
 ```
+Gitee加速源：  
+```
+wget -U "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36" "https://gitee.com/apples1949/SteamCMDLinuxFile/raw/main/build/steamcmd_linux.tar.gz"
+```
 ```
 tar -xzf steamcmd_linux.tar.gz
 ```
@@ -20,6 +24,10 @@ tar -xzf steamcmd_linux.tar.gz
 常用指令：  
 ```
 wget https://raw.kkgithub.com/apples1949/SteamCMDLinuxFile/main/build/package.tar.gz
+```
+Gitee加速源：  
+```
+wget -U "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36" "https://gitee.com/apples1949/SteamCMDLinuxFile/raw/main/build/package.tar.gz"
 ```
 ```
 tar -xzf package.tar.gz
