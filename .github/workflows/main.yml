@@ -1,4 +1,4 @@
-name: SteamCMD Force Reset
+name: SteamCMD Upload
 
 on:
   workflow_dispatch:
@@ -8,32 +8,16 @@ on:
 permissions:
   contents: write
 
+
 jobs:
-  deploy:
+  package:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout with .git
-      uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
-        clean: false
-
-    - name: Safe Clean Workspace
-      run: |
-        find . -mindepth 1 -not -path './.git' -not -path './.git/*' -delete
-        
-        if [ ! -d ".git" ]; then
-          echo "❌ Critical: .git directory missing!"
-          exit 1
-        fi
-
-        git reset --hard HEAD
-        git clean -fdx -e '.git/'
-
-    - name: Create New Structure
-      run: |
-        mkdir -p steamcmd packages
-        echo "v2.0" > version.txt
 
     - name: Setup Environment
       run: |
@@ -41,28 +25,56 @@ jobs:
         sudo apt-get install -y lib32gcc-s1
         sudo timedatectl set-timezone Asia/Shanghai
 
-    - name: Process SteamCMD
+    - name: Prepare Directories
       run: |
-        TEMP_DIR=$(mktemp -d)
-        cd $TEMP_DIR
+        mkdir -p "$GITHUB_WORKSPACE/build"  
+        WORKDIR="$HOME/steamcmd_build"
+        mkdir -p "$WORKDIR"
+        cd "$WORKDIR"
+        echo "Current dir: $(pwd)"
 
+    - name: Download SteamCMD
+      run: |
+        cd "$HOME/steamcmd_build"
         wget -q https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
         tar -xzf steamcmd_linux.tar.gz
         rm steamcmd_linux.tar.gz
         ./steamcmd.sh +quit
+        chmod -R a+r *
 
-        tar -czvf $GITHUB_WORKSPACE/steamcmd/steamcmd_linux.tar.gz \
-          --exclude='linux32/steamclient.so' \
-          linux32 steamcmd.sh
-
-        cd package
-        tar -czvf $GITHUB_WORKSPACE/packages/package.tar.gz ./*
-
-    - name: Atomic Commit
+    - name: Create SteamCMD Package
       run: |
-        git config --global user.name "Robotic Deployer"
-        git config --global user.email "noreply@steamcmd.mirror"
-        git add -A
-        git commit --allow-empty -m "🚀 SteamCMD Release $(date +'%Y-%m-%dT%H:%M:%S%z')"
-        git push origin HEAD:main --force --no-verify
-        git remote remove origin
+        tar -czvf "$GITHUB_WORKSPACE/build/steamcmd_linux.tar.gz" \
+          --exclude='linux32/steamclient.so' \
+          -C "$HOME/steamcmd_build" \
+          linux32 \
+          package \
+          steamcmd.sh
+    
+        ls -lh "$GITHUB_WORKSPACE/build"
+        echo "Package path: $GITHUB_WORKSPACE/build/steamcmd_linux.tar.gz"
+
+    - name: Compress Package Contents
+      run: |
+        cd "$HOME/steamcmd_build"
+        (cd package && tar -czvf ../package.tar.gz ./*)
+        mv package.tar.gz "$GITHUB_WORKSPACE/build/"
+        ls -lh "$GITHUB_WORKSPACE/build"
+        echo "Package path: $GITHUB_WORKSPACE/build/package.tar.gz"
+        
+    - name: Commit & Push
+      run: |
+        cd "$GITHUB_WORKSPACE"
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@users.noreply.github.com"
+
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+
+        if [ -n "$(git status --porcelain build/)" ]; then
+          git add build/
+          git commit -m "🤖 Auto Update SteamCMD ($(date +'%Y-%m-%d %H:%M'))"
+          git pull --rebase origin main
+          git push origin HEAD:main
+        else
+          echo "🟢 No changes to commit"
+        fi
