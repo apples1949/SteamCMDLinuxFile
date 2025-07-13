@@ -115,8 +115,8 @@ jobs:
         if [ -n "$(git status --porcelain build/ README.md)" ]; then
           git add build/ README.md
           git commit -m "🤖 更新SteamCMD ($(date +'%Y-%m-%d %H:%M'))"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          git pull --rebase origin test
+          git push origin HEAD:test
           echo "🚀 更改已推送"
         else
           echo "🟢 无更改可提交"
