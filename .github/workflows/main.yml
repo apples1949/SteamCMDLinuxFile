@@ -66,7 +66,7 @@ jobs:
     - name: Upload Package via Script
       run: |
         cd "$GITHUB_WORKSPACE"
-        wegt -q https://raw.githubusercontent.com/Aruelius/wenshushu/refs/heads/master/wss.py
+        wget -q https://raw.githubusercontent.com/Aruelius/wenshushu/refs/heads/master/wss.py
         # 运行上传命令并捕获完整输出
         python3 wss.py upload build/steamcmd_linux.tar.gz > upload_output.log 2>&1
         
