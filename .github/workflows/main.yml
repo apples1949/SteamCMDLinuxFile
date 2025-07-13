@@ -1,13 +1,10 @@
 name: SteamCMD Upload
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 */4 * * *'
+  workflow_dispatch:  # 仅保留手动触发
 
 permissions:
   contents: write
-
 
 jobs:
   package:
@@ -22,8 +19,12 @@ jobs:
     - name: Setup Environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y lib32gcc-s1
+        sudo apt-get install -y lib32gcc-s1 python3-pip
         sudo timedatectl set-timezone Asia/Shanghai
+
+    - name: Install Python Dependencies
+      run: |
+        pip3 install requests base58 pycryptodomex
 
     - name: Prepare Directories
       run: |
@@ -62,6 +63,20 @@ jobs:
         ls -lh "$GITHUB_WORKSPACE/build"
         echo "Package path: $GITHUB_WORKSPACE/build/package.tar.gz"
         
+    - name: Upload Package via Script
+      run: |
+        cd "$GITHUB_WORKSPACE"
+        UPLOAD_OUTPUT=$(python3 wss.py upload build/steamcmd_linux.tar.gz)
+        echo "UPLOAD_OUTPUT=${UPLOAD_OUTPUT}" >> $GITHUB_ENV
+        echo "Upload output saved to env"
+        
+    - name: Update README with Upload Result
+      run: |
+        echo -e "\n## Latest Upload Result\n\`\`\`" >> README.md
+        echo "$UPLOAD_OUTPUT" >> README.md
+        echo -e "\`\`\`\n" >> README.md
+        echo "Updated README.md with upload result"
+        
     - name: Commit & Push
       run: |
         cd "$GITHUB_WORKSPACE"
@@ -70,8 +85,8 @@ jobs:
 
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
-        if [ -n "$(git status --porcelain build/)" ]; then
-          git add build/
+        if [ -n "$(git status --porcelain build/ README.md)" ]; then
+          git add build/ README.md
           git commit -m "🤖 Auto Update SteamCMD ($(date +'%Y-%m-%d %H:%M'))"
           git pull --rebase origin main
           git push origin HEAD:main
