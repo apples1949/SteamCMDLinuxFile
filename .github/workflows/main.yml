@@ -66,6 +66,7 @@ jobs:
     - name: Upload Package via Script
       run: |
         cd "$GITHUB_WORKSPACE"
+        wget https://github.com/Aruelius/wenshushu/raw/refs/heads/master/wss.py
         UPLOAD_OUTPUT=$(python3 wss.py upload build/steamcmd_linux.tar.gz)
         echo "UPLOAD_OUTPUT=${UPLOAD_OUTPUT}" >> $GITHUB_ENV
         echo "Upload output saved to env"
