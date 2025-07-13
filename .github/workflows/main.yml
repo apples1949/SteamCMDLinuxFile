@@ -1,7 +1,7 @@
 name: SteamCMD Upload
 
 on:
-  workflow_dispatch:  # 仅保留手动触发
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -67,30 +67,20 @@ jobs:
       run: |
         cd "$GITHUB_WORKSPACE"
         wget -q https://raw.githubusercontent.com/Aruelius/wenshushu/refs/heads/master/wss.py
-        # 运行上传命令并捕获完整输出
         python3 wss.py upload build/steamcmd_linux.tar.gz > upload_output.log 2>&1
-        
-        # 显示完整上传日志
-        echo "===== 完整上传日志 ====="
         cat upload_output.log
-        echo "======================"
-        
-        # 仅提取公共链接
         PUBLIC_LINK=$(grep "公共链接" upload_output.log | awk -F'：' '{print $2}' | tr -d '[:space:]')
-        
-        # 保存到环境变量
         echo "PUBLIC_LINK=$PUBLIC_LINK" >> $GITHUB_ENV
         echo "提取的公共链接: $PUBLIC_LINK"
         
     - name: Update README with Public Link
       run: |
-        # 创建/更新公共链接部分
         SECTION_START="<!-- PUBLIC_LINK_START -->"
         SECTION_END="<!-- PUBLIC_LINK_END -->"
         
-        # 创建新的结果块
-        NEW_CONTENT="$SECTION_START\n\n### 最新SteamCMD下载\n"
-        NEW_CONTENT+="[立即下载]($PUBLIC_LINK) (有效期7天)\n\n"
+        NEW_CONTENT="$SECTION_START\n\ 以下为[文叔叔](https://www.wenshushu.cn)加速链接：\n"
+        NEW_CONTENT+="[$PUBLIC_LINK]($PUBLIC_LINK)\n\n"
+        NEW_CONTENT+="只适用于实在是找不到其他的快速下载渠道\n"
         NEW_CONTENT+="$SECTION_END"
         
         # 如果存在现有结果则替换，否则追加
