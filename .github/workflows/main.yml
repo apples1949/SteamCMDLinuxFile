@@ -75,31 +75,23 @@ jobs:
         cat upload_output.log
         echo "======================"
         
-        # 提取关键信息
-        SPACE_INFO=$(grep "当前已用空间" upload_output.log || echo "")
-        LINKS=$(grep -E "个人管理链接|公共链接" upload_output.log || echo "")
+        # 仅提取公共链接
+        PUBLIC_LINK=$(grep "公共链接" upload_output.log | awk -F'：' '{print $2}' | tr -d '[:space:]')
         
         # 保存到环境变量
-        echo "UPLOAD_OUTPUT<<EOF" >> $GITHUB_ENV
-        echo -e "$SPACE_INFO" >> $GITHUB_ENV
-        echo -e "$LINKS" >> $GITHUB_ENV
-        echo "EOF" >> $GITHUB_ENV
+        echo "PUBLIC_LINK=$PUBLIC_LINK" >> $GITHUB_ENV
+        echo "提取的公共链接: $PUBLIC_LINK"
         
-        # 显示提取结果
-        echo -e "\n📤 提取的上传结果："
-        echo -e "$SPACE_INFO"
-        echo -e "$LINKS"
-        
-    - name: Update README with Upload Result
+    - name: Update README with Public Link
       run: |
-        # 创建/更新上传结果部分
-        SECTION_START="<!-- UPLOAD_RESULT_START -->"
-        SECTION_END="<!-- UPLOAD_RESULT_END -->"
+        # 创建/更新公共链接部分
+        SECTION_START="<!-- PUBLIC_LINK_START -->"
+        SECTION_END="<!-- PUBLIC_LINK_END -->"
         
         # 创建新的结果块
-        NEW_CONTENT="$SECTION_START\n\n## 最新上传结果\n\n\`\`\`"
-        NEW_CONTENT+="\n$UPLOAD_OUTPUT\n"
-        NEW_CONTENT+="\`\`\`\n\n$SECTION_END"
+        NEW_CONTENT="$SECTION_START\n\n### 最新SteamCMD下载\n"
+        NEW_CONTENT+="[立即下载]($PUBLIC_LINK) (有效期7天)\n\n"
+        NEW_CONTENT+="$SECTION_END"
         
         # 如果存在现有结果则替换，否则追加
         if grep -q "$SECTION_START" README.md; then
@@ -122,9 +114,9 @@ jobs:
 
         if [ -n "$(git status --porcelain build/ README.md)" ]; then
           git add build/ README.md
-          git commit -m "🤖 Auto Update SteamCMD ($(date +'%Y-%m-%d %H:%M'))"
-          git pull --rebase origin test
-          git push origin HEAD:test
+          git commit -m "🤖 更新SteamCMD ($(date +'%Y-%m-%d %H:%M'))"
+          git pull --rebase origin main
+          git push origin HEAD:main
           echo "🚀 更改已推送"
         else
           echo "🟢 无更改可提交"
