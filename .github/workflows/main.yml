@@ -66,51 +66,51 @@ jobs:
     - name: Upload Package via Script
       run: |
         cd "$GITHUB_WORKSPACE"
-        wget -q https://raw.githubusercontent.com/Aruelius/wenshushu/refs/heads/master/wss.py
-        # 运行上传命令并将输出保存到文件
+        wegt -q https://raw.githubusercontent.com/Aruelius/wenshushu/refs/heads/master/wss.py
+        # 运行上传命令并捕获完整输出
         python3 wss.py upload build/steamcmd_linux.tar.gz > upload_output.log 2>&1
         
-        # 提取关键信息：空间信息和链接
-        SPACE_INFO=$(grep "当前已用空间" upload_output.log || echo "")
-        PRIVATE_LINK=$(grep "个人管理链接" upload_output.log | cut -d'：' -f2 || echo "")
-        PUBLIC_LINK=$(grep "公共链接" upload_output.log | cut -d'：' -f2 || echo "")
+        # 显示完整上传日志
+        echo "===== 完整上传日志 ====="
+        cat upload_output.log
+        echo "======================"
         
-        # 构造格式化的输出
-        FORMATTED_OUTPUT=""
-        if [ -n "$SPACE_INFO" ]; then
-          FORMATTED_OUTPUT+="${SPACE_INFO}\n"
-        fi
-        if [ -n "$PRIVATE_LINK" ]; then
-          FORMATTED_OUTPUT+="个人管理链接：${PRIVATE_LINK}\n"
-        fi
-        if [ -n "$PUBLIC_LINK" ]; then
-          FORMATTED_OUTPUT+="公共链接：${PUBLIC_LINK}\n"
-        fi
+        # 提取关键信息
+        SPACE_INFO=$(grep "当前已用空间" upload_output.log || echo "")
+        LINKS=$(grep -E "个人管理链接|公共链接" upload_output.log || echo "")
         
         # 保存到环境变量
         echo "UPLOAD_OUTPUT<<EOF" >> $GITHUB_ENV
-        echo -e "$FORMATTED_OUTPUT" >> $GITHUB_ENV
+        echo -e "$SPACE_INFO" >> $GITHUB_ENV
+        echo -e "$LINKS" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
         
-        # 显示上传结果
-        echo -e "\n📤 上传结果：\n${FORMATTED_OUTPUT}"
+        # 显示提取结果
+        echo -e "\n📤 提取的上传结果："
+        echo -e "$SPACE_INFO"
+        echo -e "$LINKS"
         
     - name: Update README with Upload Result
       run: |
-        # 在README中定位或创建上传结果区域
-        if grep -q "## 最新上传结果" README.md; then
-          # 替换现有结果
-          sed -i '/## 最新上传结果/,/## / { /## 最新上传结果/ { n; r /dev/stdin
-          }; d }' README.md <<< "$UPLOAD_OUTPUT"
+        # 创建/更新上传结果部分
+        SECTION_START="<!-- UPLOAD_RESULT_START -->"
+        SECTION_END="<!-- UPLOAD_RESULT_END -->"
+        
+        # 创建新的结果块
+        NEW_CONTENT="$SECTION_START\n\n## 最新上传结果\n\n\`\`\`"
+        NEW_CONTENT+="\n$UPLOAD_OUTPUT\n"
+        NEW_CONTENT+="\`\`\`\n\n$SECTION_END"
+        
+        # 如果存在现有结果则替换，否则追加
+        if grep -q "$SECTION_START" README.md; then
+          sed -i "/$SECTION_START/,/$SECTION_END/c\\$NEW_CONTENT" README.md
         else
-          # 创建新结果区域
-          echo -e "\n## 最新上传结果\n" >> README.md
-          echo "$UPLOAD_OUTPUT" >> README.md
-          echo -e "\n" >> README.md
+          echo -e "\n$NEW_CONTENT" >> README.md
         fi
         
         echo "✅ README已更新"
-        cat README.md | tail -n 10
+        echo "更新内容："
+        echo -e "$NEW_CONTENT"
         
     - name: Commit & Push
       run: |
