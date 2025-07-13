@@ -24,15 +24,7 @@ wget https://raw.kkgithub.com/apples1949/SteamCMDLinuxFile/main/build/package.ta
 ```
 ```
 tar -xzf package.tar.gz
-```
-
-## 最新上传结果
-
-当前已用空间:0.0GB,剩余空间:5.0GB,总空间:5.0GB
-
-
-
-
+```  
 <!-- UPLOAD_RESULT_START -->
 
 ## 最新上传结果
