@@ -36,3 +36,10 @@ tar -xzf package.tar.gz
 ```
 
 <!-- UPLOAD_RESULT_END -->
+
+<!-- PUBLIC_LINK_START -->
+
+### 最新SteamCMD下载
+[立即下载](https://c.wss.pet/f/hh7yf00lvc4) (有效期7天)
+
+<!-- PUBLIC_LINK_END -->
