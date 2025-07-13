@@ -66,17 +66,51 @@ jobs:
     - name: Upload Package via Script
       run: |
         cd "$GITHUB_WORKSPACE"
-        wget https://github.com/Aruelius/wenshushu/raw/refs/heads/master/wss.py
-        UPLOAD_OUTPUT=$(python3 wss.py upload build/steamcmd_linux.tar.gz)
-        echo "UPLOAD_OUTPUT=${UPLOAD_OUTPUT}" >> $GITHUB_ENV
-        echo "Upload output saved to env"
+        wget -q https://raw.githubusercontent.com/Aruelius/wenshushu/refs/heads/master/wss.py
+        # 运行上传命令并将输出保存到文件
+        python3 wss.py upload build/steamcmd_linux.tar.gz > upload_output.log 2>&1
+        
+        # 提取关键信息：空间信息和链接
+        SPACE_INFO=$(grep "当前已用空间" upload_output.log || echo "")
+        PRIVATE_LINK=$(grep "个人管理链接" upload_output.log | cut -d'：' -f2 || echo "")
+        PUBLIC_LINK=$(grep "公共链接" upload_output.log | cut -d'：' -f2 || echo "")
+        
+        # 构造格式化的输出
+        FORMATTED_OUTPUT=""
+        if [ -n "$SPACE_INFO" ]; then
+          FORMATTED_OUTPUT+="${SPACE_INFO}\n"
+        fi
+        if [ -n "$PRIVATE_LINK" ]; then
+          FORMATTED_OUTPUT+="个人管理链接：${PRIVATE_LINK}\n"
+        fi
+        if [ -n "$PUBLIC_LINK" ]; then
+          FORMATTED_OUTPUT+="公共链接：${PUBLIC_LINK}\n"
+        fi
+        
+        # 保存到环境变量
+        echo "UPLOAD_OUTPUT<<EOF" >> $GITHUB_ENV
+        echo -e "$FORMATTED_OUTPUT" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+        
+        # 显示上传结果
+        echo -e "\n📤 上传结果：\n${FORMATTED_OUTPUT}"
         
     - name: Update README with Upload Result
       run: |
-        echo -e "\n## Latest Upload Result\n\`\`\`" >> README.md
-        echo "$UPLOAD_OUTPUT" >> README.md
-        echo -e "\`\`\`\n" >> README.md
-        echo "Updated README.md with upload result"
+        # 在README中定位或创建上传结果区域
+        if grep -q "## 最新上传结果" README.md; then
+          # 替换现有结果
+          sed -i '/## 最新上传结果/,/## / { /## 最新上传结果/ { n; r /dev/stdin
+          }; d }' README.md <<< "$UPLOAD_OUTPUT"
+        else
+          # 创建新结果区域
+          echo -e "\n## 最新上传结果\n" >> README.md
+          echo "$UPLOAD_OUTPUT" >> README.md
+          echo -e "\n" >> README.md
+        fi
+        
+        echo "✅ README已更新"
+        cat README.md | tail -n 10
         
     - name: Commit & Push
       run: |
@@ -89,8 +123,9 @@ jobs:
         if [ -n "$(git status --porcelain build/ README.md)" ]; then
           git add build/ README.md
           git commit -m "🤖 Auto Update SteamCMD ($(date +'%Y-%m-%d %H:%M'))"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          git pull --rebase origin test
+          git push origin HEAD:test
+          echo "🚀 更改已推送"
         else
-          echo "🟢 No changes to commit"
+          echo "🟢 无更改可提交"
         fi
