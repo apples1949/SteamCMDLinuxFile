@@ -7,9 +7,9 @@ mkdir steamcmd
 ```
 cd ./steamcmd
 ```
-[KK加速源](https://help.kkgithub.com/)：  
+[gh-proxy加速源](https://gh-proxy.com/)：  
 ```
-wget https://raw.kkgithub.com/apples1949/SteamCMDLinuxFile/main/build/steamcmd_linux.tar.gz
+wget "https://gh-proxy.com/https://raw.github.com/apples1949/SteamCMDLinuxFile/main/build/steamcmd_linux.tar.gz"
 ```
 ```
 tar -xzf steamcmd_linux.tar.gz
@@ -18,9 +18,9 @@ tar -xzf steamcmd_linux.tar.gz
 ./steamcmd.sh
 ```  
 针对更新加速，单独对更新包package文件进行打包。解压在package文件夹中。记得删除旧文件  
-[KK加速源](https://help.kkgithub.com/)：  
+[gh-proxy加速源](https://gh-proxy.com/)：  
 ```
-wget https://raw.kkgithub.com/apples1949/SteamCMDLinuxFile/main/build/package.tar.gz
+wget "https://gh-proxy.com/https://raw.github.com/apples1949/SteamCMDLinuxFile/main/build/package.tar.gz"
 ```
 ```
 tar -xzf package.tar.gz
