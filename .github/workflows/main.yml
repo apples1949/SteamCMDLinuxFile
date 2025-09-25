@@ -1,9 +1,7 @@
-name: SteamCMD Release
+name: SteamCMD Upload
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 */4 * * *'
 
 permissions:
   contents: write
@@ -21,8 +19,12 @@ jobs:
     - name: Setup Environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y lib32gcc-s1
+        sudo apt-get install -y lib32gcc-s1 python3-pip
         sudo timedatectl set-timezone Asia/Shanghai
+
+    - name: Install Python Dependencies
+      run: |
+        pip3 install requests base58 pycryptodomex
 
     - name: Prepare Directories
       run: |
@@ -60,45 +62,52 @@ jobs:
         mv package.tar.gz "$GITHUB_WORKSPACE/build/"
         ls -lh "$GITHUB_WORKSPACE/build"
         echo "Package path: $GITHUB_WORKSPACE/build/package.tar.gz"
-    
-    - name: Generate Timestamp
-      id: timestamp
+        
+    - name: Upload Package via Script
       run: |
-        echo "TAG_NAME=steamcmd-$(date -u +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
-        echo "RELEASE_NAME=SteamCMD Build $(date -u +'%Y-%m-%d %H:%M UTC')" >> $GITHUB_OUTPUT
-        echo "BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
+        cd "$GITHUB_WORKSPACE"
+        wget -q https://raw.githubusercontent.com/Aruelius/wenshushu/refs/heads/master/wss.py
+        python3 wss.py upload build/steamcmd_linux.tar.gz > upload_output.log 2>&1
+        cat upload_output.log
+        PUBLIC_LINK=$(grep "公共链接" upload_output.log | awk -F'：' '{print $2}' | tr -d '[:space:]')
+        echo "PUBLIC_LINK=$PUBLIC_LINK" >> $GITHUB_ENV
+        echo "提取的公共链接: $PUBLIC_LINK"
+        
+    - name: Update README with Public Link
+      run: |
+        SECTION_START="<!-- PUBLIC_LINK_START -->"
+        SECTION_END="<!-- PUBLIC_LINK_END -->"
+        
+        NEW_CONTENT="$SECTION_START\n\ 以下为[文叔叔](https://www.wenshushu.cn)加速链接：\n"
+        NEW_CONTENT+="[$PUBLIC_LINK]($PUBLIC_LINK)\n\n"
+        NEW_CONTENT+="只适用于实在是找不到其他的快速下载渠道\n"
+        NEW_CONTENT+="$SECTION_END"
+        
+        # 如果存在现有结果则替换，否则追加
+        if grep -q "$SECTION_START" README.md; then
+          sed -i "/$SECTION_START/,/$SECTION_END/c\\$NEW_CONTENT" README.md
+        else
+          echo -e "\n$NEW_CONTENT" >> README.md
+        fi
+        
+        echo "✅ README已更新"
+        echo "更新内容："
+        echo -e "$NEW_CONTENT"
+        
+    - name: Commit & Push
+      run: |
+        cd "$GITHUB_WORKSPACE"
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@users.noreply.github.com"
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ steps.timestamp.outputs.TAG_NAME }}
-        release_name: ${{ steps.timestamp.outputs.RELEASE_NAME }}
-        draft: false
-        prerelease: false
-        body: |
-          Auto-generated SteamCMD build
-          - Build time: ${{ steps.timestamp.outputs.BUILD_TIME }}
-          - Contains SteamCMD Linux binaries and package contents
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
-    - name: Upload SteamCMD Package
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: $GITHUB_WORKSPACE/build/steamcmd_linux.tar.gz
-        asset_name: steamcmd_linux.tar.gz
-        asset_content_type: application/gzip
-
-    - name: Upload Package Contents
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: $GITHUB_WORKSPACE/build/package.tar.gz
-        asset_name: package.tar.gz
-        asset_content_type: application/gzip
+        if [ -n "$(git status --porcelain build/ README.md)" ]; then
+          git add build/ README.md
+          git commit -m "🤖 更新SteamCMD ($(date +'%Y-%m-%d %H:%M'))"
+          git pull --rebase origin test
+          git push origin HEAD:test
+          echo "🚀 更改已推送"
+        else
+          echo "🟢 无更改可提交"
+        fi
