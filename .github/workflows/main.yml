@@ -60,20 +60,27 @@ jobs:
         mv package.tar.gz "$GITHUB_WORKSPACE/build/"
         ls -lh "$GITHUB_WORKSPACE/build"
         echo "Package path: $GITHUB_WORKSPACE/build/package.tar.gz"
-        
+    
+    - name: Generate Timestamp
+      id: timestamp
+      run: |
+        echo "TAG_NAME=steamcmd-$(date -u +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+        echo "RELEASE_NAME=SteamCMD Build $(date -u +'%Y-%m-%d %H:%M UTC')" >> $GITHUB_OUTPUT
+        echo "BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
+
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: steamcmd-$(date +'%Y%m%d-%H%M%S')
-        release_name: SteamCMD Build $(date +'%Y-%m-%d %H:%M')
+        tag_name: ${{ steps.timestamp.outputs.TAG_NAME }}
+        release_name: ${{ steps.timestamp.outputs.RELEASE_NAME }}
         draft: false
         prerelease: false
         body: |
           Auto-generated SteamCMD build
-          - Build time: $(date +'%Y-%m-%d %H:%M:%S')
+          - Build time: ${{ steps.timestamp.outputs.BUILD_TIME }}
           - Contains SteamCMD Linux binaries and package contents
 
     - name: Upload SteamCMD Package
