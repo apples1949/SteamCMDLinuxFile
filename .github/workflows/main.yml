@@ -61,6 +61,23 @@ jobs:
         ls -lh "$GITHUB_WORKSPACE/build"
         echo "Package path: $GITHUB_WORKSPACE/build/package.tar.gz"
     
+    - name: Verify files exist
+      run: |
+        echo "Checking if files exist..."
+        ls -la "$GITHUB_WORKSPACE/build/"
+        if [ -f "$GITHUB_WORKSPACE/build/steamcmd_linux.tar.gz" ]; then
+          echo "✅ steamcmd_linux.tar.gz exists"
+        else
+          echo "❌ steamcmd_linux.tar.gz does not exist"
+          exit 1
+        fi
+        if [ -f "$GITHUB_WORKSPACE/build/package.tar.gz" ]; then
+          echo "✅ package.tar.gz exists"
+        else
+          echo "❌ package.tar.gz does not exist"
+          exit 1
+        fi
+    
     - name: Generate Timestamp
       id: timestamp
       run: |
@@ -89,7 +106,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: $GITHUB_WORKSPACE/build/steamcmd_linux.tar.gz
+        asset_path: ${{ github.workspace }}/build/steamcmd_linux.tar.gz
         asset_name: steamcmd_linux.tar.gz
         asset_content_type: application/gzip
 
@@ -99,6 +116,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: $GITHUB_WORKSPACE/build/package.tar.gz
+        asset_path: ${{ github.workspace }}/build/package.tar.gz
         asset_name: package.tar.gz
         asset_content_type: application/gzip
