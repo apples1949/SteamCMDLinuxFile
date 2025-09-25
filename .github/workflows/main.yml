@@ -83,8 +83,8 @@ jobs:
       run: |
         # 设置时区为北京时间
         export TZ='Asia/Shanghai'
-        echo "RELEASE_NAME=SteamCMD Build $(date +'%Y-%m-%d %H:%M 北京时间')" >> $GITHUB_OUTPUT
-        echo "BUILD_TIME=$(date +'%Y-%m-%d %H:%M:%S 北京时间')" >> $GITHUB_OUTPUT
+        echo "RELEASE_NAME=SteamCMD Build In $(date +'%Y-%m-%d %H:%M')" >> $GITHUB_OUTPUT
+        echo "BUILD_TIME=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
 
     - name: Check and delete existing release
       id: check_release
