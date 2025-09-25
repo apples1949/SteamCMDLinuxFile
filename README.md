@@ -1,0 +1,2 @@
+# SteamCmdLinuxFile
+通过白嫖github下载更新好的steamcmd程序
