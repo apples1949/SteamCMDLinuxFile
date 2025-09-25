@@ -1,0 +1,97 @@
+name: SteamCMD Release
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 */4 * * *'
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Setup Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y lib32gcc-s1
+        sudo timedatectl set-timezone Asia/Shanghai
+
+    - name: Prepare Directories
+      run: |
+        mkdir -p "$GITHUB_WORKSPACE/build"  
+        WORKDIR="$HOME/steamcmd_build"
+        mkdir -p "$WORKDIR"
+        cd "$WORKDIR"
+        echo "Current dir: $(pwd)"
+
+    - name: Download SteamCMD
+      run: |
+        cd "$HOME/steamcmd_build"
+        wget -q https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+        tar -xzf steamcmd_linux.tar.gz
+        rm steamcmd_linux.tar.gz
+        ./steamcmd.sh +quit
+        chmod -R a+r *
+
+    - name: Create SteamCMD Package
+      run: |
+        tar -czvf "$GITHUB_WORKSPACE/build/steamcmd_linux.tar.gz" \
+          --exclude='linux32/steamclient.so' \
+          -C "$HOME/steamcmd_build" \
+          linux32 \
+          package \
+          steamcmd.sh
+    
+        ls -lh "$GITHUB_WORKSPACE/build"
+        echo "Package path: $GITHUB_WORKSPACE/build/steamcmd_linux.tar.gz"
+
+    - name: Compress Package Contents
+      run: |
+        cd "$HOME/steamcmd_build"
+        (cd package && tar -czvf ../package.tar.gz ./*)
+        mv package.tar.gz "$GITHUB_WORKSPACE/build/"
+        ls -lh "$GITHUB_WORKSPACE/build"
+        echo "Package path: $GITHUB_WORKSPACE/build/package.tar.gz"
+        
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: steamcmd-$(date +'%Y%m%d-%H%M%S')
+        release_name: SteamCMD Build $(date +'%Y-%m-%d %H:%M')
+        draft: false
+        prerelease: false
+        body: |
+          Auto-generated SteamCMD build
+          - Build time: $(date +'%Y-%m-%d %H:%M:%S')
+          - Contains SteamCMD Linux binaries and package contents
+
+    - name: Upload SteamCMD Package
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: $GITHUB_WORKSPACE/build/steamcmd_linux.tar.gz
+        asset_name: steamcmd_linux.tar.gz
+        asset_content_type: application/gzip
+
+    - name: Upload Package Contents
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: $GITHUB_WORKSPACE/build/package.tar.gz
+        asset_name: package.tar.gz
+        asset_content_type: application/gzip
