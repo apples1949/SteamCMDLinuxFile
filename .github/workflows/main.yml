@@ -78,12 +78,58 @@ jobs:
           exit 1
         fi
     
-    - name: Generate Timestamp
-      id: timestamp
+    - name: Generate Release Info
+      id: release_info
       run: |
-        echo "TAG_NAME=steamcmd-$(date -u +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
         echo "RELEASE_NAME=SteamCMD Build $(date -u +'%Y-%m-%d %H:%M UTC')" >> $GITHUB_OUTPUT
         echo "BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
+
+    - name: Check if release exists
+      id: check_release
+      uses: actions/github-script@v6
+      with:
+        script: |
+          try {
+            const release = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: 'steamcmd-latest'
+            });
+            return { exists: true, id: release.data.id };
+          } catch (error) {
+            if (error.status === 404) {
+              return { exists: false };
+            }
+            throw error;
+          }
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Delete existing release
+      if: steps.check_release.outputs.exists == 'true'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          await github.rest.repos.deleteRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            release_id: ${{ steps.check_release.outputs.id }}
+          });
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Delete existing tag
+      if: steps.check_release.outputs.exists == 'true'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          await github.rest.git.deleteRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: 'tags/steamcmd-latest'
+          });
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create Release
       id: create_release
@@ -91,14 +137,15 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.timestamp.outputs.TAG_NAME }}
-        release_name: ${{ steps.timestamp.outputs.RELEASE_NAME }}
+        tag_name: steamcmd-latest
+        release_name: ${{ steps.release_info.outputs.RELEASE_NAME }}
         draft: false
         prerelease: false
         body: |
           Auto-generated SteamCMD build
-          - Build time: ${{ steps.timestamp.outputs.BUILD_TIME }}
+          - Build time: ${{ steps.release_info.outputs.BUILD_TIME }}
           - Contains SteamCMD Linux binaries and package contents
+          - This release is automatically updated every 4 hours
 
     - name: Upload SteamCMD Package
       uses: actions/upload-release-asset@v1
