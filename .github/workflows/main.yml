@@ -81,8 +81,9 @@ jobs:
     - name: Generate Release Info
       id: release_info
       run: |
-        echo "RELEASE_NAME=SteamCMD Build $(date -u +'%Y-%m-%d %H:%M UTC')" >> $GITHUB_OUTPUT
-        echo "BUILD_TIME=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
+        export TZ='Asia/Shanghai'
+        echo "RELEASE_NAME=SteamCMD Build $(date +'%Y-%m-%d %H:%M')" >> $GITHUB_OUTPUT
+        echo "BUILD_TIME=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
 
     - name: Check if release exists
       id: check_release
@@ -142,10 +143,10 @@ jobs:
         draft: false
         prerelease: false
         body: |
-          Auto-generated SteamCMD build
-          - Build time: ${{ steps.release_info.outputs.BUILD_TIME }}
-          - Contains SteamCMD Linux binaries and package contents
-          - This release is automatically updated every 4 hours
+          自动生成的 SteamCMD 构建
+          - 构建时间: ${{ steps.release_info.outputs.BUILD_TIME }}
+          - 包含 SteamCMD Linux 二进制文件和包内容
+          - 此发布每 4 小时自动更新一次
 
     - name: Upload SteamCMD Package
       uses: actions/upload-release-asset@v1
