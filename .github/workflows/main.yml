@@ -86,50 +86,49 @@ jobs:
         echo "RELEASE_NAME=SteamCMD Build $(date +'%Y-%m-%d %H:%M 北京时间')" >> $GITHUB_OUTPUT
         echo "BUILD_TIME=$(date +'%Y-%m-%d %H:%M:%S 北京时间')" >> $GITHUB_OUTPUT
 
-    - name: Check if release exists
+    - name: Check and delete existing release
       id: check_release
       uses: actions/github-script@v6
       with:
         script: |
           try {
+            // 首先尝试获取发布
             const release = await github.rest.repos.getReleaseByTag({
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag: 'steamcmd-latest'
             });
-            return { exists: true, id: release.data.id };
+            
+            // 如果发布存在，删除它
+            await github.rest.repos.deleteRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: release.data.id
+            });
+            
+            console.log('已删除现有发布');
+            
+            // 然后尝试删除标签
+            try {
+              await github.rest.git.deleteRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: 'tags/steamcmd-latest'
+              });
+              console.log('已删除现有标签');
+            } catch (tagError) {
+              console.log('删除标签时出错，可能标签不存在:', tagError.message);
+            }
+            
+            return { exists: true };
           } catch (error) {
             if (error.status === 404) {
+              console.log('发布不存在，将继续创建新发布');
               return { exists: false };
             }
+            console.log('检查发布时出错:', error.message);
             throw error;
           }
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Delete existing release
-      if: steps.check_release.outputs.exists == 'true'
-      uses: actions/github-script@v6
-      with:
-        script: |
-          await github.rest.repos.deleteRelease({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            release_id: ${{ steps.check_release.outputs.id }}
-          });
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Delete existing tag
-      if: steps.check_release.outputs.exists == 'true'
-      uses: actions/github-script@v6
-      with:
-        script: |
-          await github.rest.git.deleteRef({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            ref: 'tags/steamcmd-latest'
-          });
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
