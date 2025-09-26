@@ -144,7 +144,8 @@ jobs:
         body: |
           自动生成的 SteamCMD 构建
           - 构建时间: ${{ steps.release_info.outputs.BUILD_TIME }}
-          - 包含 SteamCMD Linux 二进制文件和包内容
+          - steamcmd_linux.tar.gz为SteamCmd全包，加速链接:https://gh-proxy.com/github.com/apples1949/SteamCmdLinuxFile/releases/download/steamcmd-latest/steamcmd_linux.tar.gz
+          - package.tar.gz为更新包，加速链接:https://gh-proxy.com/github.com/apples1949/SteamCmdLinuxFile/releases/download/steamcmd-latest/package.tar.gz
           - 此发布每 4 小时自动更新一次
         draft: false
         prerelease: false
