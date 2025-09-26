@@ -9,7 +9,7 @@ cd ./steamcmd
 ```
 [gh-proxy加速源](https://gh-proxy.com/)：  
 ```
-wget "https://gh-proxy.com/https://raw.github.com/apples1949/SteamCMDLinuxFile/main/build/steamcmd_linux.tar.gz"
+wget "https://gh-proxy.com/github.com/apples1949/SteamCmdLinuxFile/releases/download/steamcmd-latest/steamcmd_linux.tar.gz"
 ```
 ```
 tar -xzf steamcmd_linux.tar.gz
@@ -20,7 +20,7 @@ tar -xzf steamcmd_linux.tar.gz
 针对更新加速，单独对更新包package文件进行打包。解压在package文件夹中。记得删除旧文件  
 [gh-proxy加速源](https://gh-proxy.com/)：  
 ```
-wget "https://gh-proxy.com/https://raw.github.com/apples1949/SteamCMDLinuxFile/main/build/package.tar.gz"
+wget "https://gh-proxy.com/github.com/apples1949/SteamCmdLinuxFile/releases/download/steamcmd-latest/package.tar.gz"
 ```
 ```
 tar -xzf package.tar.gz
